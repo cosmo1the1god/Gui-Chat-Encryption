@@ -1,7 +1,6 @@
 import queue
 import threading
 import socket
-import base64
 from cryptography.fernet import Fernet
 
 # Key to decrypt messages from clients and encrypt messages to clients
