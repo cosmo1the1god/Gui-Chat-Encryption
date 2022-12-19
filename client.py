@@ -4,7 +4,6 @@ import random
 import tkinter as tk
 import tkinter.scrolledtext as tkst
 from tkinter import simpledialog
-import base64
 from cryptography.fernet import Fernet
 
 
