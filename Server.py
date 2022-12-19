@@ -2,6 +2,7 @@ import queue
 import threading
 import socket
 import base64
+from cryptography.fernet import Fernet
 
 # Key to decrypt messages from clients and encrypt messages to clients
 messages = queue.Queue()
@@ -9,6 +10,9 @@ clients = []
 # Create a socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind(("localhost", 9999))
+
+with open("key.mp", "rb") as file:
+    key = file.read()
 
 print("Server is running...")
 
@@ -26,18 +30,18 @@ def broadcast():
     while True:
         while not messages.empty():
             message, addr = messages.get()
-            message_bytes = base64.b64decode(message)
-            message = message_bytes.decode('utf-8', 'ascii')
-            print(message)
+            fernet = Fernet(key)
+            dec_message = fernet.decrypt(message).decode()
+            print(dec_message)
             if addr not in clients:
                 clients.append(addr)
             for client in clients:
                 try:
-                    if message.startswith("SIGNUP_TAG:"):
-                        name = message[message.index(":") + 1:]
+                    if dec_message.startswith("SIGNUP_TAG:"):
+                        name = dec_message[dec_message.index(":") + 1:]
                         server_socket.sendto(f"Welcome {name}!".encode(), client)
                     else:
-                        server_socket.sendto(message.encode(), client)
+                        server_socket.sendto(dec_message.encode(), client)
                 except:
                     clients.remove(client)
 
