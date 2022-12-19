@@ -5,6 +5,7 @@ import tkinter as tk
 import tkinter.scrolledtext as tkst
 from tkinter import simpledialog
 import base64
+from cryptography.fernet import Fernet
 
 
 # Chat window with input field and send button and text from another user
@@ -19,6 +20,9 @@ class Client:
         msg.withdraw()
 
         self.nickname = simpledialog.askstring("Nickname", "Please choose a nickname", parent=msg)
+
+        if self.nickname is None:
+            self.nickname = "Anonymous"
 
         self.gui_done = False
 
@@ -88,12 +92,14 @@ class Client:
     # write on the chat window
     def write(self):
         message = f"{self.nickname}: {self.input_area.get('1.0', 'end')}"
-        message_bytes = message.encode('utf-8', 'ascii')
-        base64_bytes = base64.b64encode(message_bytes)
-        self.client.sendto(base64_bytes, ("localhost", 9999))
+        with open("key.mp", "rb") as file:
+            key = file.read()
+
+        fernet = Fernet(key)
+        encMessage = fernet.encrypt(message.encode())
+        self.client.sendto(encMessage, ("localhost", 9999))
         self.input_area.delete('1.0', 'end')
 
 
 # Start the chat window
 client = Client()
-
